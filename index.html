@@ -46,12 +46,18 @@
             left: 0;
             width: 100%;
             text-align: center;
-            font-size: 40px;
+            font-size: 24px;
             font-weight: bold;
             color: white;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
             z-index: 10;
             pointer-events: none;
+        }
+        
+        .high-score-display {
+            margin-left: 20px;
+            font-size: 20px;
+            opacity: 0.9;
         }
         
         .game-over {
@@ -156,7 +162,10 @@
 <body>
     <div class="game-container">
         <canvas id="game-canvas"></canvas>
-        <div class="score-display">0</div>
+        <div class="score-display">
+            <span class="current-score">0</span>
+            <span class="high-score-display">Best: 0</span>
+        </div>
         
         <div class="game-over">
             <h2>Game Over!</h2>
@@ -166,6 +175,7 @@
         
         <div class="start-screen">
             <h1>Flappy Bird</h1>
+            <p>High Score: <span class="high-score">0</span></p>
             <p>Click or press Space to make the bird fly</p>
             <button class="btn-start">Start Game</button>
         </div>
@@ -175,12 +185,14 @@
         document.addEventListener('DOMContentLoaded', () => {
             const canvas = document.getElementById('game-canvas');
             const ctx = canvas.getContext('2d');
-            const scoreDisplay = document.querySelector('.score-display');
+            const scoreDisplay = document.querySelector('.current-score');
             const finalScore = document.querySelector('.final-score');
             const gameOverPanel = document.querySelector('.game-over');
             const restartButton = document.querySelector('.btn-restart');
             const startScreen = document.querySelector('.start-screen');
             const startButton = document.querySelector('.btn-start');
+            const gameHighScoreDisplay = document.querySelector('.high-score-display');
+            const highScoreDisplay = document.querySelector('.high-score');
             
             // Set canvas dimensions to match its parent container
             function resizeCanvas() {
@@ -196,6 +208,9 @@
             let gameOver = false;
             let score = 0;
             let animationFrameId;
+            // Use a simple variable instead of localStorage
+            let highScore = 0;
+            highScoreDisplay.textContent = highScore;
             
             // Colors
             const colors = {
@@ -387,6 +402,7 @@
                 gameStarted = true;
                 gameOver = false;
                 startScreen.style.display = 'none';
+                gameHighScoreDisplay.textContent = "Best: " + highScore;
                 gameLoop();
             }
             
@@ -395,7 +411,8 @@
                 // Reset game state
                 gameOver = false;
                 score = 0;
-                scoreDisplay.textContent = score;
+                scoreDisplay.textContent = '0';
+                gameHighScoreDisplay.textContent = `Best: ${highScore}`;
                 pipes.length = 0;
                 frameCount = 0;
                 
@@ -468,8 +485,7 @@
                     // Check if pipe is passed
                     if (!pipe.passed && pipe.x + pipeWidth < bird.x) {
                         pipe.passed = true;
-                        score++;
-                        scoreDisplay.textContent = score;
+                        updateScore();
                     }
                     
                     // Check collision with pipes
@@ -523,6 +539,14 @@
             function endGame() {
                 gameOver = true;
                 finalScore.textContent = score;
+                
+                // Update high score if current score is higher
+                if (score > highScore) {
+                    highScore = score;
+                    // Remove localStorage line
+                    highScoreDisplay.textContent = highScore;
+                }
+                
                 gameOverPanel.style.display = 'block';
                 cancelAnimationFrame(animationFrameId);
             }
@@ -535,6 +559,13 @@
                 if (!gameOver) {
                     animationFrameId = requestAnimationFrame(gameLoop);
                 }
+            }
+            
+            // Update score
+            function updateScore() {
+                score++;
+                scoreDisplay.textContent = score;
+                gameHighScoreDisplay.textContent = `Best: ${highScore}`;
             }
             
             // Initialize game
